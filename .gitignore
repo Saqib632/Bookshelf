@@ -1,0 +1,19 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python caches and local runtime data
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.tmp/
+
+# Node and build output
+node_modules/
+.next/
+out/
+coverage/
+
+# Local logs
+*.log

@@ -1,0 +1,59 @@
+services:
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:v1.13.2
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  api:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      REDIS_URL: redis://redis:6379/0
+      VECTOR_DB_URL: http://qdrant:6333
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mongo
+      - redis
+      - qdrant
+
+  worker:
+    build: ./backend
+    command: dramatiq app.workers.tasks
+    env_file: ./backend/.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      REDIS_URL: redis://redis:6379/0
+      VECTOR_DB_URL: http://qdrant:6333
+    depends_on:
+      - mongo
+      - redis
+      - qdrant
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3001:3000"
+    depends_on:
+      - api
+
+volumes:
+  mongo_data:
+  qdrant_data:
