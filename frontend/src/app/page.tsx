@@ -57,6 +57,7 @@ export default function Home() {
   const [chatLines, setChatLines] = useState<ChatLine[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [chatLoading, setChatLoading] = useState(false);
   const [notice, setNotice] = useState("");
   const googleButtonRef = useRef<HTMLDivElement>(null);
   const uploadInFlight = useRef(false);
@@ -235,6 +236,7 @@ export default function Home() {
     const prompt = question.trim();
     setQuestion("");
     setChatLines((lines) => [...lines, { role: "user", content: prompt }]);
+    setChatLoading(true);
     setBusy(true);
     try {
       const result = await chat(
@@ -256,10 +258,11 @@ export default function Home() {
         ...lines,
         {
           role: "assistant",
-          content: error instanceof Error ? error.message : "Chat failed",
+          content: error instanceof Error ? `Unable to answer: ${error.message}` : "Unable to answer right now.",
         },
       ]);
     } finally {
+      setChatLoading(false);
       setBusy(false);
     }
   }
@@ -448,31 +451,39 @@ export default function Home() {
                 </p>
               </div>
             ) : (
-              chatLines.map((line, index) => (
-                <article
-                  className={`chat-line ${line.role}`}
-                  key={`${line.role}-${index}`}
-                >
-                  <span className="line-label">
-                    {line.role === "user" ? "YOU" : "THE MARGIN"}
-                  </span>
-                  <p>{line.content}</p>
-                  {line.citations?.map((citation) => (
-                    <div className="citation" key={citation.citation_id}>
-                      <span>↳</span>
-                      <div>
-                        <strong>
-                          {citation.chapter || "Book passage"}
-                          {citation.page_number
-                            ? ` / p. ${citation.page_number}`
-                            : ""}
-                        </strong>
-                        <small>{citation.source_text}</small>
+              <>
+                {chatLines.map((line, index) => (
+                  <article
+                    className={`chat-line ${line.role}`}
+                    key={`${line.role}-${index}`}
+                  >
+                    <span className="line-label">
+                      {line.role === "user" ? "YOU" : "THE MARGIN"}
+                    </span>
+                    <p>{line.content}</p>
+                    {line.citations?.map((citation) => (
+                      <div className="citation" key={citation.citation_id}>
+                        <span>↳</span>
+                        <div>
+                          <strong>
+                            {citation.chapter || "Book passage"}
+                            {citation.page_number
+                              ? ` / p. ${citation.page_number}`
+                              : ""}
+                          </strong>
+                          <small>{citation.source_text}</small>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </article>
-              ))
+                    ))}
+                  </article>
+                ))}
+                {chatLoading && (
+                  <div className="chat-loading" role="status" aria-live="polite">
+                    <span className="spinner" aria-hidden="true" />
+                    <span>Thinking...</span>
+                  </div>
+                )}
+              </>
             )}
           </div>
           <form className="chat-input" onSubmit={askQuestion}>
@@ -484,11 +495,11 @@ export default function Home() {
                   ? "Ask something grounded in this book..."
                   : "Select a book first"
               }
-              disabled={!selectedBook || busy}
+              disabled={!selectedBook || busy || chatLoading}
             />
             <button
               type="submit"
-              disabled={!selectedBook || busy || !question.trim()}
+              disabled={!selectedBook || busy || chatLoading || !question.trim()}
             >
               Ask <span>↗</span>
             </button>

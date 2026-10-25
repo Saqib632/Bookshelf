@@ -51,9 +51,12 @@ async def _process_document(job_id: str, manage_connection: bool = True) -> None
             documents.append({"chunk_id": chunk_id, "book_id": job["book_id"], "document_id": job["document_id"], "user_id": job["user_id"], **chunk, "metadata": {}, "vector_reference": {"provider": "qdrant", "collection": settings.vector_db_collection, "point_id": chunk_id}, "created_at": now})
             vector = await embedding_provider.embed(chunk["chunk_text"])
             vector_points.append((chunk_id, vector, {"user_id": job["user_id"], "book_id": job["book_id"], "document_id": job["document_id"], "chunk_id": chunk_id, "page_number": chunk["page_number"], "chapter": chunk["chapter"], "section": chunk["section"], "chunk_index": chunk["chunk_index"]}))
-        await vector_store.upsert(vector_points)
         if documents:
             await db.document_chunks.insert_many(documents)
+        try:
+            await vector_store.upsert(vector_points)
+        except Exception:
+            logger.exception("processing stage=vector_index_unavailable job_id=%s; continuing with MongoDB chunks", job_id)
         await db.processing_jobs.update_one({"job_id": job_id}, {"$set": {"status": "completed", "current_stage": "completed", "progress": 100, "completed_at": datetime.now(timezone.utc)}})
         await db.books.update_one({"book_id": job["book_id"], "user_id": job["user_id"]}, {"$set": {"processing_status": "completed", "chunk_count": len(documents), "updated_at": datetime.now(timezone.utc)}})
     except Exception as exc:

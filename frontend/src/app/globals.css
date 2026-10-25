@@ -65,6 +65,9 @@ button:disabled { opacity: .45; cursor: wait; }
 .chat-body::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .empty-chat { max-width: 430px; margin: 12vh auto; text-align: center; }.empty-chat span { color: var(--rust); font: 700 11px Arial, sans-serif; letter-spacing: .15em; }.empty-chat h3 { margin: 18px 0 10px; font-size: 35px; font-weight: 400; }.empty-chat p { color: #77786f; font-size: 17px; line-height: 1.4; }
 .chat-line { max-width: 650px; margin: 0 auto 34px; }.chat-line.user { text-align: right; }.line-label { color: var(--rust); font: 700 10px Arial, sans-serif; letter-spacing: .12em; }.chat-line p { font-size: 20px; line-height: 1.45; margin: 10px 0; }
+.chat-loading { max-width: 650px; margin: 0 auto 34px; display: flex; align-items: center; gap: 10px; color: #77786f; font: 13px Arial, sans-serif; }
+.spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--rust); border-radius: 50%; animation: spin .8s linear infinite; flex: 0 0 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .citation { display: flex; gap: 12px; padding: 13px 0; border-top: 1px solid var(--line); text-align: left; color: var(--sage); }.citation > span { font-size: 20px; }.citation strong, .citation small { display: block; }.citation strong { font: 700 10px Arial, sans-serif; letter-spacing: .08em; text-transform: uppercase; }.citation small { margin-top: 5px; color: #78776f; font-size: 13px; line-height: 1.3; }
 .chat-input { width: calc(100% - 96px); max-width: 900px; height: 52px; margin: 0 auto 30px; display: flex; box-sizing: border-box; border: 1px solid var(--line); background: var(--cream); }
 .chat-input input { flex: 1; width: 0; min-width: 0; border: 0; padding: 0 16px; }

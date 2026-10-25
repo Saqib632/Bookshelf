@@ -74,8 +74,6 @@ async def search_chunks(
                 scored.append(RetrievedChunk(item["chunk_id"], item["book_id"], item["document_id"], item["chunk_text"], item.get("page_number"), item.get("chapter"), item.get("section"), vector_score))
     except Exception:
         logger.exception("retrieval stage=vector_failed user_id=%s book_ids=%s", user_id, book_ids)
-        if not scored:
-            raise ConnectionError("Vector search is unavailable")
     result = sorted(scored, key=lambda item: item.score, reverse=True)[:limit]
     logger.info("retrieval stage=combined user_id=%s book_ids=%s chunks=%s scores=%s", user_id, book_ids, len(result), [round(item.score, 4) for item in result])
     return result
