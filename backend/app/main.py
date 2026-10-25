@@ -16,9 +16,14 @@ logger = logging.getLogger("book_rag")
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    await database.connect()
-    yield
-    await database.close()
+    try:
+        await database.connect()
+    except Exception:
+        logger.exception("startup stage=database_unavailable; API is running in degraded mode")
+    try:
+        yield
+    finally:
+        await database.close()
 
 
 app = FastAPI(title="Chat With Your Book API", version="0.1.0", lifespan=lifespan)
